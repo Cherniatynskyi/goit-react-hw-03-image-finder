@@ -16,13 +16,14 @@ class App extends Component {
     showModal: false,
     selected: null,
     page: 1,
-    isLoading: false
+    isLoading: false,
+    showButton: true
   }
 
   componentDidUpdate(_, prevState) {
     if (prevState.value !== this.state.value || prevState.page !== this.state.page) {
           this.getImages()
-        }
+        }  
   }
 
   formHandler = ({ value }) => {
@@ -35,13 +36,17 @@ class App extends Component {
     this.setState({isLoading: true})
     try {
       const fetchedImages = await API.getImages(value, page)
+      if(fetchedImages.length ===0){
+        alert("No results")
+      }
       this.setState(prevState => ({
       images: prevState.images
         ? [...prevState.images, ...fetchedImages]
-        : fetchedImages
+        : fetchedImages,
+        showButton: !(fetchedImages.length < 12)
       }))
     }
-    catch (error) { }
+    catch (error) {alert("Error")}
     finally{this.setState({isLoading: false})}
   } 
 
@@ -68,11 +73,12 @@ class App extends Component {
 
 
   render() {
-    const {images, selected, showModal, isLoading} = this.state
+    const {images, selected, showModal, isLoading, showButton} = this.state
     return (<div>
       <SearchBar onSubmit={this.formHandler} />
       <ImageGallery images={images} onImgClick={this.onImgClick} />
-      {images && !isLoading && <Button click={this.onBtnLoadMore} />}
+      {images  && !isLoading && showButton && <Button click={this.onBtnLoadMore} />}
+
       {isLoading&&<Loader/>}
       {showModal && <Modal image={selected} onClose={this.closeModal} />}
     </div>)
